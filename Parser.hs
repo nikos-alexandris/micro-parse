@@ -1,5 +1,6 @@
 {-# OPTIONS -Wall #-}
-{-# LANGUAGE LambdaCase #-}
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+{-# HLINT ignore "Use lambda-case" #-}
 
 module Parser
   ( Parser(..)
@@ -8,8 +9,10 @@ module Parser
   , charPred
   , stringLiteral
   , string
-  , uint
-  , sint
+  , uInt
+  , sInt
+  , uDouble
+  , sDouble
   , sepSomeBy
   , sepManyBy
   , someSpaces
@@ -63,14 +66,27 @@ sepSomeBy sep el = do
 sepManyBy :: Parser a -> Parser b -> Parser [b]
 sepManyBy sep el = sepSomeBy sep el <|> return []
 
-uint :: Parser Integer
-uint = do
+uInt :: Parser Integer
+uInt = do
     s <- some (charPred isDigit)
     return $ read s
 
-sint :: Parser Integer
-sint = do { s <- char '+' <|> char '-'; n <- uint; case s of '+' -> return n; _ -> return (-n) }
-   <|> uint
+sInt :: Parser Integer
+sInt = do { s <- char '+' <|> char '-'; n <- uInt; case s of '+' -> return n; _ -> return (-n) }
+   <|> uInt
+
+uDouble :: Parser Double
+uDouble = do
+    d <- some (charPred isDigit)
+    f <- (char '.' *> many (charPred isDigit)) <|> pure []
+    case f of
+        [] -> return $ read d
+        _  -> return $ read (d ++ ('.' : f))
+
+sDouble :: Parser Double
+sDouble = do { s <- char '+' <|> char '-'; n <- uDouble; case s of '+' -> return n; _ -> return (-n) }
+   <|> uDouble
+
 
 string :: String -> Parser String
 string = traverse char
@@ -86,6 +102,7 @@ char :: Char -> Parser Char
 char c = charPred (== c)
 
 charPred :: (Char -> Bool) -> Parser Char
-charPred f = Parser $ \case
-    (x:xs) | f x -> Just (x, xs)
-    _            -> Nothing
+charPred f = Parser $ \input ->
+    case input of
+        (x:xs) | f x -> Just (x, xs)
+        _            -> Nothing

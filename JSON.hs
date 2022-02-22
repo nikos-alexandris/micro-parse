@@ -8,7 +8,7 @@ data JsonValue
     = JsonNull
     | JsonBool Bool
     | JsonString String
-    | JsonNumber Integer
+    | JsonNumber Double
     | JsonArray [JsonValue]
     | JsonObject [(String, JsonValue)]
     deriving (Show, Eq)
@@ -49,7 +49,7 @@ pJsonString :: Parser JsonValue
 pJsonString = JsonString <$> stringLiteral
 
 pJsonNumber :: Parser JsonValue
-pJsonNumber = JsonNumber <$> sint
+pJsonNumber = JsonNumber <$> sDouble
 
 pJsonArray :: Parser JsonValue
 pJsonArray = do
