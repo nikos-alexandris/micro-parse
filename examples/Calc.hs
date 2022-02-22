@@ -43,14 +43,6 @@ calc = do
         _               -> putStrLn "Could not parse expression"
     calc
 
-repl :: IO ()
-repl = do
-    putStr "> "
-    str <- getLine
-    case runParser pExpr str of
-        Just (expr, "") -> print $ eval expr
-        _               -> putStrLn "Could not parse expression"
-
 eval :: Expr -> Double
 eval (Number n) = n
 eval (Unary Plus r) = eval r
